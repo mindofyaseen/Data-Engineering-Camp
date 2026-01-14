@@ -1,3 +1,4 @@
+import click
 import pandas as pd
 from sqlalchemy import create_engine
 from tqdm.auto import tqdm
@@ -26,13 +27,27 @@ parse_dates = [
     "tpep_dropoff_datetime"
 ]
 
-
-def ingest_data(
-        url: str,
-        engine,
-        target_table: str,
-        chunksize: int = 100000,
-) -> pd.DataFrame:
+@click.command()
+@click.option('--user', default='root', help='PostgreSQL user')
+@click.option('--password', default='root', help='PostgreSQL password')
+@click.option('--host', default='pgdatabase', help='PostgreSQL host')
+@click.option('--port', default=5432, type=int, help='PostgreSQL port')
+@click.option('--db', default='ny_taxi', help='PostgreSQL database name')
+@click.option('--table', default='yellow_taxi_trips_2021_1', help='Target table name')
+def ingest_data(user, password, host, port, db, table):
+    # Extract year and month from table name (assuming format like yellow_taxi_trips_2021_1)
+    parts = table.split('_')
+    year = int(parts[-2])
+    month = int(parts[-1])
+    
+    target_table = table
+    chunksize = 100000
+    
+    engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
+    url_prefix = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow'
+    
+    url = f'{url_prefix}/yellow_tripdata_{year:04d}-{month:02d}.csv.gz'
+    
     df_iter = pd.read_csv(
         url,
         dtype=dtype,
@@ -40,25 +55,25 @@ def ingest_data(
         iterator=True,
         chunksize=chunksize
     )
-
+    
     first_chunk = next(df_iter)
-
+    
     first_chunk.head(0).to_sql(
         name=target_table,
         con=engine,
         if_exists="replace"
     )
-
+    
     print(f"Table {target_table} created")
-
+    
     first_chunk.to_sql(
         name=target_table,
         con=engine,
         if_exists="append"
     )
-
+    
     print(f"Inserted first chunk: {len(first_chunk)} \n")
-
+    
     for df_chunk in tqdm(df_iter):
         df_chunk.to_sql(
             name=target_table,
@@ -66,31 +81,8 @@ def ingest_data(
             if_exists="append"
         )
         print(f"Inserted chunk: {len(df_chunk)} \n")
-
+    
     print(f'done ingesting to {target_table} \n from {url}')
 
-def main():
-    pg_user = 'root'
-    pg_pass = 'root'
-    pg_host = 'localhost'
-    pg_port = '5432'
-    pg_db = 'ny_taxi'
-    year = 2021
-    month = 1
-    chunksize = 100000
-    target_table = 'yellow_taxi_data'
-
-    engine = create_engine(f'postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
-    url_prefix = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow'
-
-    url = f'{url_prefix}/yellow_tripdata_{year:04d}-{month:02d}.csv.gz'
-
-    ingest_data(
-        url=url,
-        engine=engine,
-        target_table=target_table,
-        chunksize=chunksize
-    )
-
 if __name__ == '__main__':
-    main()
+    ingest_data()
