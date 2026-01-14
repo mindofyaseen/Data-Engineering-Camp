@@ -1,0 +1,8 @@
+docker run -it --rm \
+  --network=pipeline_default \
+  taxi_ingest:v001 \
+  --pg_user=root \
+  --pg_pass=root \
+  --pg_host=pgdatabase1 \
+  --pg_port=5432 \
+  --pg_db=ny_taxi 
