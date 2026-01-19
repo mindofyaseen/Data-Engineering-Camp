@@ -165,7 +165,7 @@ docker run -it --rm \
   --pg-user=root \
   --pg-pass=root \
   --pg-host= pgdatabase \
-  --pg-port=5432 \
+  --pg-port=5433 \
   --pg-db=ny_taxi \
   --target-table=yellow_taxi_trips_2021_1 \
   --year=2021 \
@@ -173,3 +173,64 @@ docker run -it --rm \
   --chunksize=100000
 
 # ----------------------------------------------------
+
+docker run -it \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+  -e PGADMIN_DEFAULT_PASSWORD="root" \
+  -v pgadmin_data:/var/lib/pgadmin \
+  -p 8085:80 \
+  --network=pg-network \
+  --name pgadmin \
+  dpage/pgadmin4
+
+# ----------------------------------------------------
+
+docker-compose up
+
+# OR
+
+# ----------------------------------------------------
+
+docker-compose down
+
+# ----------------------------------------------------
+
+# And if you want to run the containers again in the background rather than in the foreground (thus freeing up your terminal), you can run them in detached mode:
+
+docker-compose up -d
+
+# ----------------------------------------------------
+
+# Stop and remove volumes
+docker-compose down -v
+
+# ----------------------------------------------------
+
+# now run the script:
+docker run -it \
+  --network=pg-network \
+  taxi_ingest:v001 \
+    --pg-user=root \
+    --pg-pass=root \
+    --pg-host=pgdatabase \
+    --pg-port=5432 \
+    --pg-db=ny_taxi \
+    --target-table=yellow_taxi_trips_2021_2 \
+    --year=2021 \
+    --month=2 \
+    --chunksize=100000
+
+# ----------------------------------------------------
+
+docker run -it --rm \
+  --network=pg-network \
+  taxi_ingest:v001 \
+  --pg-user=root \
+  --pg-pass=root \
+  --pg-host=pgdatabase \
+  --pg-port=5432 \
+  --pg-db=ny_taxi \
+  --target-table=yellow_taxi_trips_2021_1 \
+  --year=2021 \
+  --month=1 \
+  --chunksize=100000
