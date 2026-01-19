@@ -1,3 +1,19 @@
+# ------------------------------------
+
+# build the dummy pipeline image 
+docker build -t test:testing .
+
+# run the dummy pipeline container from the image
+docker run -it --rm test:testing 12
+
+# removing the container:
+docker rm <container_id>
+
+# Remove specific image
+docker rmi test:testing
+
+# ------------------------------------------------------
+
 # List all containers
 docker ps -a
 
@@ -51,19 +67,5 @@ rm -rf __pycache__ .pytest_cache
 # Remove virtual environment (if using venv)
 rm -rf .venv
 
-# ------------------------------------
 
-# build the dummy pipeline image 
-docker build -t test:testing .
-
-# run the dummy pipeline container from the image
-docker run -it --rm test:testing 12
-
-# removing the container:
-docker rm <container_id>
-
-# Remove specific image
-docker rmi test:testing
-
-# ------------------------------------------------------
 
